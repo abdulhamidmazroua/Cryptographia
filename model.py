@@ -1,5 +1,7 @@
 import random
 import numpy as np
+import re
+from collections import OrderedDict
 
 
 class KeyNotValid(Exception):
@@ -51,26 +53,48 @@ def full_vigenere_decrypt(ciphertext, key):
 
 # Playfair cipher
 def playfair_generate_key(key):
-    key_matrix = []
-    for char in key.upper().replace("J", "I"):
-        if char not in key_matrix and char.isalpha():
-            key_matrix.append(char)
-    for char in "ABCDEFGHIKLMNOPQRSTUVWXYZ":
-        if char not in key_matrix:
-            key_matrix.append(char)
+    # Remove non-alphabetic characters from key
+    key = re.sub('[^A-Za-z]', '', key).upper()
+
+    # Remove duplicates from key
+    key = "".join(OrderedDict.fromkeys(key))
+
+    # Create 2D key matrix
+    key_matrix = [['' for i in range(5)] for j in range(5)]
+
+    # Fill key matrix with key characters in row-major order
+    row, col = 0, 0
+    for char in key:
+        key_matrix[row][col] = char
+        col += 1
+        if col == 5:
+            row += 1
+            col = 0
+
+    # Fill remaining cells in key matrix with unused characters in alphabetical order
+    alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+    for char in alphabet:
+        if char not in key:
+            key_matrix[row][col] = char
+            col += 1
+            if col == 5:
+                row += 1
+                col = 0
+            if row == 5:
+                break
+
     return key_matrix
+
 
 def playfair_encrypt(plaintext, key):
     key_matrix = playfair_generate_key(key)
-    plaintext = plaintext.upper().replace("J", "I").replace(" ", "")
+    plaintext = plaintext.upper().replace("J", "I").replace(" ", "").replace('\n', '')
     if len(plaintext) % 2 == 1:
         plaintext += "X"
     result = ""
     for i in range(0, len(plaintext), 2):
-        a = plaintext[i]
-        b = plaintext[i+1]
-        a_row, a_col = divmod(key_matrix.index(a), 5)
-        b_row, b_col = divmod(key_matrix.index(b), 5)
+        a_row, a_col = get_position(key_matrix, plaintext[i])
+        b_row, b_col = get_position(key_matrix, plaintext[i+1])
         if a_row == b_row:
             result += key_matrix[a_row][(a_col+1)%5] + key_matrix[b_row][(b_col+1)%5]
         elif a_col == b_col:
@@ -80,33 +104,27 @@ def playfair_encrypt(plaintext, key):
     return result
 
 
-# Playfair cipher
-def playfair_decrypt(ciphertext, keyword):
-    # Generate the key table
-    key_table = playfair_generate_key(keyword)
-
-    # Convert the ciphertext to uppercase and remove whitespace
-    ciphertext = ciphertext.upper().replace(" ", "")
-
-    # Split the ciphertext into digrams and decrypt each digram
-    digrams = [ciphertext[i:i+2] for i in range(0, len(ciphertext), 2)]
-    plaintext = ""
-    for digram in digrams:
-        row1, col1 = divmod(key_table[digram[0]], 5)
-        row2, col2 = divmod(key_table[digram[1]], 5)
-        if row1 == row2:
-            # Same row, shift columns to the left
-            col1 = (col1 - 1) % 5
-            col2 = (col2 - 1) % 5
-        elif col1 == col2:
-            # Same column, shift rows up
-            row1 = (row1 - 1) % 5
-            row2 = (row2 - 1) % 5
+def playfair_decrypt(ciphertext, key):
+    key_matrix = playfair_generate_key(key)
+    ciphertext = ciphertext.upper().replace(" ", "").replace('\n', '')
+    result = ""
+    for i in range(0, len(ciphertext), 2):
+        a_row, a_col = get_position(key_matrix, ciphertext[i])
+        b_row, b_col = get_position(key_matrix, ciphertext[i+1])
+        if a_row == b_row:
+            result += key_matrix[a_row][(a_col-1)%5] + key_matrix[b_row][(b_col-1)%5]
+        elif a_col == b_col:
+            result += key_matrix[(a_row-1)%5][a_col] + key_matrix[(b_row-1)%5][b_col]
         else:
-            # Rectangle, swap columns
-            col1, col2 = col2, col1
-        plaintext += key_table[row1*5 + col1] + key_table[row2*5 + col2]
-    return plaintext
+            result += key_matrix[a_row][b_col] + key_matrix[b_row][a_col]
+    return result
+
+def get_position(key_matrix, char):
+    for i, row in enumerate(key_matrix):
+        if char in row:
+            j = row.index(char)
+            return i, j
+
 
 
 # Polyalphabetic cipher
