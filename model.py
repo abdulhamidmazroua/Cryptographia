@@ -6,7 +6,7 @@ from collections import OrderedDict
 
 class KeyNotValid(Exception):
     def __init__(self, algorithm) -> None:
-        super().__init__(f"{algorithm.capitalize()} encryption algorithm doesn't accept this kind of keys")
+        super().__init__(f"{algorithm} encryption algorithm doesn't accept this kind of keys")
         self.algorithm = algorithm
 
 # Caesar cipher
@@ -183,6 +183,8 @@ def transposition_encrypt(plaintext, key):
 
     return ciphertext
 
+
+
 def transposition_decrypt(ciphertext, key):
     # Split the ciphertext into rows and rearrange
     num_columns = len(key)
@@ -201,64 +203,24 @@ def transposition_decrypt(ciphertext, key):
 
     return plaintext
 
-
-# Hill cipher
-def hill_encrypt(plaintext, key):
-    # Convert plaintext to numbers
-    plaintext = plaintext.upper()
-    plaintext = [ord(char) - 65 for char in plaintext]
-    plaintext = np.array(plaintext)
-
-    # Make sure the key is square and invertible
-    key = np.array(key)
-    det = np.linalg.det(key)
-    if det == 0 or np.gcd(int(det), 26) != 1:
-        raise ValueError("Invalid key")
-
-    # Pad the plaintext with dummy values if necessary
-    if len(plaintext) % key.shape[0] != 0:
-        padding = key.shape[0] - len(plaintext) % key.shape[0]
-        plaintext = np.concatenate([plaintext, np.zeros(padding, dtype=int)])
-
-    # Reshape the plaintext into a matrix and multiply with the key
-    plaintext = plaintext.reshape((-1, key.shape[0]))
-    ciphertext = np.dot(plaintext, key) % 26
-
-    # Convert ciphertext back to characters
-    ciphertext = "".join([chr(char + 65) for char in ciphertext.flatten()])
-    return ciphertext
-
-def hill_decrypt(ciphertext, key):
-    # Convert ciphertext to numbers
-    ciphertext = ciphertext.upper()
-    ciphertext = [ord(char) - 65 for char in ciphertext]
-    ciphertext = np.array(ciphertext)
-
-    # Make sure the key is square and invertible
-    key = np.array(key)
-    det = np.linalg.det(key)
-    if det == 0 or np.gcd(int(det), 26) != 1:
-        raise ValueError("Invalid key")
-
-    # Invert the key and multiply with the ciphertext
-    inv_key = np.linalg.inv(key)
-    plaintext = np.dot(ciphertext.reshape((-1, key.shape[0])), inv_key) % 26
-
-    # Convert plaintext back to characters
-    plaintext = "".join([chr(char + 65) for char in plaintext.flatten()])
-    return plaintext
-
-
 # RSA cipher
 def rsa_encrypt(plaintext, public_key):
-    n, e = public_key
-    ciphertext = [(ord(char) ** e) % n for char in plaintext]
-    return ciphertext
+    public_key = public_key.split()
+    if len(public_key) == 2:
+        n, e = int(public_key[0]), int(public_key[1])
+        ciphertext = [(ord(char) ** e) % n for char in plaintext]
+        return ciphertext
+    else:
+        raise KeyNotValid("RSA")
 
 def rsa_decrypt(ciphertext, private_key):
-    n, d = private_key
-    plaintext = [chr((char ** d) % n) for char in ciphertext]
-    return "".join(plaintext)
+    private_key = private_key.split()
+    if len(private_key) == 2:
+        n, d = private_key
+        plaintext = [chr((char ** d) % n) for char in ciphertext]
+        return "".join(plaintext)
+    else:
+        raise KeyNotValid("RSA")
 
 def rsa_generate_key_pair(bit_length=1024):
     # Generate two large primes

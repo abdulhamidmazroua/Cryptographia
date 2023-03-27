@@ -44,8 +44,7 @@ class Controller:
 
     def encrypt(self):
         function_name = {'caesar':model.caesar_encrypt, 'viginere': model.full_vigenere_encrypt,'polyalphabetic': model.polyalphabetic_encrypt,
-                         'transposition': model.transposition_encrypt, 'hill': model.hill_encrypt,
-                         'playfair': model.playfair_encrypt, 'rsa': model.rsa_encrypt}
+                         'transposition': model.transposition_encrypt, 'playfair': model.playfair_encrypt, 'rsa': model.rsa_encrypt}
         try:
             cipher = function_name[self.currentWindow.combo.get().lower()](self.currentWindow.user_text.get('1.0', tk.END), self.currentWindow.key.get())
             self.display_output(cipher, 'Encrypted')
@@ -54,8 +53,7 @@ class Controller:
 
     def decrypt(self):
         function_name = {'caesar':model.caesar_decrypt, 'viginere': model.full_vigenere_decrypt,'polyalphabetic': model.polyalphabetic_decrypt,
-                         'transposition': model.transposition_decrypt, 'hill': model.hill_decrypt,
-                         'playfair': model.playfair_decrypt, 'rsa': model.rsa_decrypt}
+                         'transposition': model.transposition_decrypt, 'playfair': model.playfair_decrypt, 'rsa': model.rsa_decrypt}
         try:
             plain = function_name[self.currentWindow.combo.get().lower()](self.currentWindow.user_text.get('1.0', tk.END), self.currentWindow.key.get())
             self.display_output(plain, 'Decrypted')

@@ -48,7 +48,7 @@ class Calculator(tk.Frame):
         self.key_text.place(x=20, y=260, width=450, height=65)
 
         tk.Label(self, text="Choose an Algorithm", fg="white", bg='#344955', font=("calibre", 16)).place(x=20, y=330)  
-        algorithms = ['Caesar', 'Viginere', 'Polyalphabetic', 'Transposition', 'Playfair', 'Hill', 'RSA']
+        algorithms = ['Caesar', 'Viginere', 'Polyalphabetic', 'Transposition', 'Playfair', 'RSA']
         self.combo = ttk.Combobox(self, values=algorithms, font=("calibre", 16))
         self.combo.set(algorithms[0])
         self.combo.place(x=20, y=365)
