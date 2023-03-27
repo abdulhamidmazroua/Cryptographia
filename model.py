@@ -1,19 +1,28 @@
 import random
 import numpy as np
 
+
+class KeyNotValid(Exception):
+    def __init__(self, algorithm) -> None:
+        super().__init__(f"{algorithm.capitalize()} encryption algorithm doesn't accept this kind of keys")
+        self.algorithm = algorithm
+
 # Caesar cipher
-def caesar_encrypt(plaintext, shift):
-    shift = int(shift)
-    result = ""
-    for char in plaintext:
-        if char.isalpha():
-            char = chr((ord(char.upper()) - 65 + shift) % 26 + 65)
-        result += char
-    return result
+def caesar_encrypt(plaintext, shift, c='e'):
+    # c argument is to denote if this will be an original encryption operation(e) or a decryption by inverting the encryption (d)
+    if shift.isnumeric():
+        shift = int(shift) if c == 'e' else -int(shift)
+        result = ""
+        for char in plaintext:
+            if char.isalpha():
+                char = chr((ord(char.upper()) - 65 + shift) % 26 + 65)
+            result += char
+        return result
+    else:
+        raise KeyNotValid("caesar")
 
 def caesar_decrypt(ciphertext, shift):
-    shift = int(shift)
-    return caesar_encrypt(ciphertext, -shift)
+    return caesar_encrypt(ciphertext, shift, 'd')
 
 
 # Full Vigenere cipher
